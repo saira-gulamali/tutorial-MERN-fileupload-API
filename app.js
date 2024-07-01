@@ -4,6 +4,16 @@ require("express-async-errors");
 const express = require("express");
 const app = express();
 
+const fileUpload = require("express-fileupload");
+// use v2
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+const productsRouter = require("./routes/productRoutes");
+
 // database
 const connectDB = require("./db/connect");
 
@@ -11,9 +21,16 @@ const connectDB = require("./db/connect");
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 
+app.use(express.static("./public")); // we need to make the /public folder publicly available
+app.use(express.json());
+app.use(fileUpload({ useTempFiles: true })); //we need to execute the express-fileupload package
+// useTempFiles allows fileUpload to copy file to temp directory
+
 app.get("/", (req, res) => {
   res.send("<h1>File Upload Starter</h1>");
 });
+
+app.use("/api/v1/products", productsRouter);
 
 // middleware
 app.use(notFoundMiddleware);
